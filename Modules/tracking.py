@@ -4,9 +4,11 @@ import numpy as np
 
 from astropy.io import fits
 
-hdulist = fits.open('/home/emily/Desktop/250project/FITSfiles/image7.fits')      #path to file
+hdulist = fits.open('/PATH TO /new_image.fits')      #path to new FITS file, edit!!
 scidata = hdulist[0].data
 
+#initalize array to keep track of what pixels are valid to be checked for cluster
+#2 pixels wider than array in both dimensions for boundry conditions of get_nbr function
 pixels_checked=np.zeros((len(scidata)+2, len(scidata[0])+2))
 for x in range(len(scidata[0])+2):
     pixels_checked[0][x]=1
@@ -18,14 +20,11 @@ for x in range(len(scidata[0])):
     for y in range(len(scidata)):
         if scidata[y,x] == 0:
             pixels_checked[y+1][x+1]=1
-# add an ordered pair to array
-# pass in array and x,y point
+
+            
 def ap (tpl, x, y):
     tpl.append([y,x])
     pixels_checked[y+1][x+1]=1
-    #np.sort(-tpl)
-    #print (tpl)
-   
 
 def if_found(tpl, x,y):
     if [x,y] in tpl:
