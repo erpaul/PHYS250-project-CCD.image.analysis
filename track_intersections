@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Dec  2 14:41:15 2018
+
+@author: emily
+"""
+import tracking as t
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from astropy.io import fits
+from sklearn.decomposition import PCA 
+
+hdulist = fits.open('/home/emily/Desktop/250project/FITSfiles/image7.fits')  #path to original fits file
+scidata = hdulist[0].data
+
+def find_track(x,y):                                                             #check stdev????
+    trackmap=[]
+    t.get_track(trackmap, x,y)
+    if len(trackmap)>=20:
+        return(trackmap) 
+track = find_track(2984,540)
+
+lin_fits=[]
+
+
+for x in range(11, len(scidata[0])):
+    for y in range(len(scidata)-20): 
+        if t.if_checked(x,y) == "yes":
+            continue
+        else:
+            track = find_track(x,y)
+            if track!= None:
+                pca=PCA(n_components=2)
+                pca.fit(track)
+                if abs(pca.components_[1][0])>=.9 or abs(pca.components_[1][1])>=.9:                           #discounts clusters of no defined direction and erases track noise        
+                    pca=PCA(n_components=1)
+                    pca.fit(track)
+                    fixedtrack=pca.transform(track)
+                    fixedtrack=pca.inverse_transform(fixedtrack)
+                    i,j = zip(*fixedtrack)
+                    fit = np.polyfit(j,i,1)
+                    fit_fn = np.poly1d(fit)
+                    lin_fits.append(fit_fn)
+
+x=np.linspace(0, len(scidata[0]), 2200)
+for n in range(len(lin_fits)):
+    plt.plot(x, lin_fits[n](x))
+plt.xlabel('x position')
+plt.ylabel('y.position')
+plt.title('Linear fits of tracks')
+plt.savefig('home/Desktop/250project/figures/linfits.pdf')
+
+heatmap=np.zeros((len(scidata)+200, len(scidata[0])+200))
+
+for n in range(len(lin_fits)-1):
+    for k in range(1, len(lin_fits)-n-1):
+        for x in range(-100, len(scidata[0])+100):
+            if round(lin_fits[n](x), 0) == round(lin_fits[k](x), 0):
+                y=int(round(lin_fits[n](x), 0))
+                if -100<y and len(scidata)+99>y:
+                    heatmap[y+100][x+100]+=1
+                    print("added")
+                break
+
+xx=[]
+yy=[]
+for x in range(len(scidata[0])):
+    for y in range(len(scidata)):
+        if heatmap[y][x]>=1:
+            xx.append(x)
+            yy.append(y)
+            
+plt.plot(xx, yy, 'bo', markersize=1)
+
+def count_quares(heatmap, size):
+    numxbin = int(len(heatmap[0])/size)
+    numybin = int(len(heatmap)/size)
+    heatmapa=np.zeros((numybin, numxbin))
+    for y in range(numybin):
+        for x in range(numxbin):
+            total=0
+            for j in range(size*y, size*(y+1)):
+                count = np.sum(heatmap[j][size*x:size*(x+1)-1])
+                total +=count
+            heatmapa[y][x] = total
+    return(heatmapa)
+               
+heatmapa=count_quares(heatmap, 20)
+heatmapb=np.flip(heatmapa, axis=0)
+fig, ax = plt.subplots()
+im = ax.imshow(heatmapb, vmin=0, vmax=10, cmap="hot")
+plt.colorbar(im, ax=ax, orientation='vertical', label='Number of Intersections', fraction=.03)
+plt.title('Track Path Intersections')
+plt.savefig('/home/emily/Desktop/250project/figures/image1377heat.pdf')
+plt.show()
+ 
+
