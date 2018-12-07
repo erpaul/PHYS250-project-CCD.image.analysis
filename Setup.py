@@ -7,7 +7,8 @@ Created on Mon Dec  3 03:05:15 2018
 """
 
 import sys
-sys.path.append("/home/emily/Desktop/250project/Modules")                        #path to where files tracking and Setup are kept
+#add path to where files tracking and Setup (in Modules folder) are kept, edit 
+sys.path.append("/PATH TO /Modules")                        
 sys.setrecursionlimit(10000)
 
 
@@ -15,11 +16,11 @@ sys.setrecursionlimit(10000)
 from astropy.io import fits
 import simplefitsfile as ssf 
 
-hdulist = fits.open('/home/emily/Desktop/250project/FITSfiles/Image37450.fits')  #path to original fits file
+hdulist = fits.open('/PATH TO /Image37450.fits')  #path to original FITS file 
 scidata = hdulist[0].data
 
 avg=ssf.avgvalue(scidata)
 sigma=ssf.sigma(scidata, avg)
 scidata=ssf.new_fits(scidata, avg, sigma)
 
-hdulist.writeto('/home/emily/Desktop/250project/FITSfiles/image3.fits')          #path to new fits file 
+hdulist.writeto('/PATH TO /new_image.fits')          #path to new FITS file 
