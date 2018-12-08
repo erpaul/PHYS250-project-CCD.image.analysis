@@ -16,26 +16,27 @@ from sklearn.decomposition import PCA
 hdulist = fits.open('/PATH TO /new_image.fits')  #path new FITS file, edit!!!
 scidata = hdulist[0].data
 
-def find_track(x,y):                                                             #check stdev????
+#finds clusters and checks size 
+def find_track(x,y):                                                             
     trackmap=[]
     t.get_track(trackmap, x,y)
-    if len(trackmap)>=20:
+    if len(trackmap)>=50:
         return(trackmap) 
 
 lin_fits=[]
 
 for x in range(11, len(scidata[0])):
     for y in range(len(scidata)-20): 
-        if t.if_checked(x,y) == "yes":
+        if t.if_checked(x,y) == "yes":    #so we dont find the same clusters over and over
             continue
         else:
             track = find_track(x,y)
             if track!= None:
                 pca=PCA(n_components=2)
                 pca.fit(track)
-                if abs(pca.components_[1][0])>=.9 or abs(pca.components_[1][1])>=.9:                           #discounts clusters of no defined direction and erases track noise        
+                if abs(pca.components_[1][0])>=.9 or abs(pca.components_[1][1])>=.9:          #if first priciple eigenvector accounts for more than 90% of variance in direction, use                 #discounts clusters of no defined direction and erases track noise        
                     pca=PCA(n_components=1)
-                    pca.fit(track)
+                    pca.fit(track)                                                            #fit linear fit to 1D track along first principle eigenvector
                     fixedtrack=pca.transform(track)
                     fixedtrack=pca.inverse_transform(fixedtrack)
                     i,j = zip(*fixedtrack)
@@ -61,7 +62,7 @@ for n in range(len(lin_fits)-1):
             if round(lin_fits[n](x), 0) == round(lin_fits[k](x), 0):
                 y=int(round(lin_fits[n](x), 0))
                 if -100<y and len(scidata)+99>y:
-                    heatmap[y+100][x+100]+=1
+                    heatmap[y+100][x+100]+=1                             #add value of 1 to pixel for each intersection that occurs there
                     print("added")
                 break
 
