@@ -19,7 +19,7 @@ scidata = hdulist[0].data
 def find_track(x,y):                                                             
     trackmap=[]
     t.get_track(trackmap, x,y)
-    if len(trackmap)>=100:
+    if len(trackmap)>=100:                         #would be a much smaller number for snolab data, left at 100 so that code doesn't take forever on this image
         return(trackmap) 
 
 lin_fits=[]
