@@ -21,23 +21,20 @@ for x in range(len(scidata[0])):
         if scidata[y,x] == 0:
             pixels_checked[y+1][x+1]=1
 
-            
+#append to array and change pixels_checked value            
 def ap (tpl, x, y):
     tpl.append([y,x])
     pixels_checked[y+1][x+1]=1
 
-def if_found(tpl, x,y):
-    if [x,y] in tpl:
-        return (0)
-    else:
-        return ("no") 
-
+#check if pixel has already been checked
 def if_checked(x,y):
     if pixels_checked[y+1][x+1]==1:
         return("yes")
     else:
         return("no")
 
+#rest of this is for recursive clustering 
+    
 def get_track(trackmap, x,y):
     get_nbr(trackmap, x,y+1)
     get_nbr(trackmap, x-1,y+1)
@@ -50,10 +47,11 @@ def get_track(trackmap, x,y):
     return
 
 def get_nbr(trackmap, x,y):
-    if pixels_checked[y+1][x+1]==0:
-        ap(trackmap, x,y)
-        get_track(trackmap, x,y)
-    return
+    if y<len(scidata) and x<len(scidata[0]):
+        if scidata[y,x]==1 and  if_checked(x,y)=="no":   #would use pixel_checked array to check validity, but this always gives stack error
+            ap(trackmap, x,y)
+            get_track(trackmap, x,y)
+        return
         
 
 
