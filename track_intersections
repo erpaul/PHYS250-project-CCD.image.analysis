@@ -16,11 +16,10 @@ from sklearn.decomposition import PCA
 hdulist = fits.open('/PATH TO /new_image.fits')  #path new FITS file, edit!!!
 scidata = hdulist[0].data
 
-#finds clusters and checks size 
 def find_track(x,y):                                                             
     trackmap=[]
     t.get_track(trackmap, x,y)
-    if len(trackmap)>=50:
+    if len(trackmap)>=100:
         return(trackmap) 
 
 lin_fits=[]
@@ -57,18 +56,17 @@ for x in range(11, len(scidata[0])):
 heatmap=np.zeros((len(scidata)+200, len(scidata[0])+200))
 
 for n in range(len(lin_fits)-1):
-    for k in range(1, len(lin_fits)-n-1):
+    for k in range(n+1, len(lin_fits)-n-1):
         for x in range(-100, len(scidata[0])+100):
-            if round(lin_fits[n](x), 0) == round(lin_fits[k](x), 0):
-                y=int(round(lin_fits[n](x), 0))
-                if -100<y and len(scidata)+99>y:
-                    heatmap[y+100][x+100]+=1                             #add value of 1 to pixel for each intersection that occurs there
-                    print("added")
-                break
-
+            y=int(round(lin_fits[n](x), 0))
+            if -100<y and len(scidata)+99>y:
+                if y==int(round(lin_fits[k](x), 0)):
+                    heatmap[y+100, x+100]+=1 
+                    print("added")                            #add value of 1 to pixel for each intersection that occurs there
+                    break
 
 #this block bins the heatmap
-def count_quares(heatmap, sizeofbin):
+def count_quares(heatmap, size):
     numxbin = int(len(heatmap[0])/size)
     numybin = int(len(heatmap)/size)
     heatmapa=np.zeros((numybin, numxbin))
@@ -76,12 +74,12 @@ def count_quares(heatmap, sizeofbin):
         for x in range(numxbin):
             total=0
             for j in range(size*y, size*(y+1)):
-                count = np.sum(heatmap[j][size*x:size*(x+1)-1])
+                count = np.sum(heatmap[j, size*x:size*(x+1)-1])
                 total +=count
-            heatmapa[y][x] = total
+            heatmapa[y,x] = total
     return(heatmapa)
                
-heatmapa=count_quares(heatmap, 20)
+heatmapa=count_quares(heatmap, 40)
 heatmapb=np.flip(heatmapa, axis=0)  #flip to match visualizations of array, where y=0 is at the top of image
 fig, ax = plt.subplots()
 im = ax.imshow(heatmapb, vmin=0, vmax=10, cmap="hot")
